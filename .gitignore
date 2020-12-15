@@ -1,0 +1,8 @@
+docs/
+*.csv
+__pycache__
+
+dev/other/
+dev/pairwise_helpers.py
+dev/pairwise_incomplete.py
+dev/tmp.py
