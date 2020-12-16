@@ -15,6 +15,7 @@ import numpy as np
 import sys
 from math import exp
 from itertools import combinations, permutations
+from scipy.stats import kendalltau
 
 from sklearn.svm import SVC, SVR
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
@@ -92,20 +93,20 @@ df['ranking'] = df['ranking'].apply(convert_ranking_string2list) # change rankin
 
 #----> Homemade kendall tau distance <----#
 
-# input: 2 ranking r, l
-def kendall_tau(l, r):
-    m = len(l) # = len(l) # number of labels
-    p = m * (m-1) / 2 # number of pairs of labels
-    c = 0 # concordant pairs
-    for a, b in combinations(range(m), 2):
-        c += int((l[a] < l[b]) == (r[a] < r[b]))
-    d = p - c # discordant pairs
-    return (c - d) / p
+# # input: 2 ranking r, l
+# def my_kendall_tau(l, r):
+#     m = len(l) # = len(l) # number of labels
+#     p = m * (m-1) / 2 # number of pairs of labels
+#     c = 0 # concordant pairs
+#     for a, b in combinations(range(m), 2):
+#         c += int((l[a] < l[b]) == (r[a] < r[b]))
+#     d = p - c # discordant pairs
+#     return (c - d) / p
 
 # # examples
-# print( kendall_tau([0,1,2,3], [0,1,2,3]) )
-# print( kendall_tau([0,1,2,3], [3,2,1,0]) )
-# print( kendall_tau([0,1,2,3], [0,3,2,1]) )
+# print( my_kendall_tau([0,1,2,3], [0,1,2,3]) )
+# print( my_kendall_tau([0,1,2,3], [3,2,1,0]) )
+# print( my_kendall_tau([0,1,2,3], [0,3,2,1]) )
 
 #----> Homemade Borda Count for complete rankings <----#
 
@@ -130,18 +131,23 @@ n_bclfs = len(bclfs_keys) # n * (n-1) // 2
 
 # choose type of binary classifier
 clf_num = 0 if len(sys.argv) < 3 else int(sys.argv[2]) # TOSET | choose classifier, num in set {0, ..., 5}
-if clf_num == 0: 
-    bclfs = {mid: SVC(gamma='scale') for _,_,mid in bclfs_keys} # binary classifiers (select by using model id)
-elif clf_num == 1:
-    bclfs = {mid: DecisionTreeClassifier() for _,_,mid in bclfs_keys} 
-elif clf_num == 2:
-    bclfs = {mid: RandomForestClassifier(n_estimators=100) for _,_,mid in bclfs_keys} 
-elif clf_num == 3:
-    bclfs = {mid: SVR(gamma='scale') for _,_,mid in bclfs_keys} 
-elif clf_num == 4:
-    bclfs = {mid: DecisionTreeRegressor() for _,_,mid in bclfs_keys} 
-else: # clf_num == 5:
-    bclfs = {mid: RandomForestRegressor(n_estimators=100) for _,_,mid in bclfs_keys} 
+
+def classifier_init():
+    global clf_num
+    if clf_num == 0: 
+        return {mid: SVC(gamma='scale') for _,_,mid in bclfs_keys} # binary classifiers (select by using model id)
+    elif clf_num == 1:
+        return {mid: DecisionTreeClassifier() for _,_,mid in bclfs_keys} 
+    elif clf_num == 2:
+        return {mid: RandomForestClassifier(n_estimators=100) for _,_,mid in bclfs_keys} 
+    elif clf_num == 3:
+        return {mid: SVR(gamma='scale') for _,_,mid in bclfs_keys} 
+    elif clf_num == 4:
+        return {mid: DecisionTreeRegressor() for _,_,mid in bclfs_keys} 
+    else: # clf_num == 5:
+        bclfs = {mid: RandomForestRegressor(n_estimators=100) for _,_,mid in bclfs_keys} 
+
+bclfs = classifier_init()
 
 # print(bclfs)
 
@@ -169,7 +175,7 @@ shuffled_indices = np.random.permutation(n_samples)
 folds_test_indices = np.array_split(shuffled_indices, n_folds) # holds the test indices for each fold 
 scores = [0.0]*n_folds
 for f in range(n_folds):
-    # TODO: maybe clone to clean up model before fitting
+    # bclfs = classifier_init() # initialise again to clean up model before fitting, doesn't make any difference
     test_indices = set(folds_test_indices[f])
     train_df, test_df = df[~df.index.isin(test_indices)], df[df.index.isin(test_indices)]
     x_train = train_df[feature_names]
@@ -190,7 +196,7 @@ for f in range(n_folds):
             antivotes[p][j] += antis(bclfs_pred[mid][p]) # when close to 1, j is better, give antivote to i
     y_test = test_df['ranking']
     y_pred = [convert_ranking(np.argsort(p)) for p in antivotes]
-    fold_scores = [kendall_tau(yt, yp) for yt, yp in zip(list(y_test), y_pred)]
+    fold_scores = [kendalltau(yt, yp)[0] for yt, yp in zip(list(y_test), y_pred)]
     scores[f] = np.average(fold_scores)
 
 # print(scores)
