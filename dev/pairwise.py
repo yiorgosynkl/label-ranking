@@ -145,7 +145,7 @@ def classifier_init():
     elif clf_num == 4:
         return {mid: DecisionTreeRegressor() for _,_,mid in bclfs_keys} 
     else: # clf_num == 5:
-        bclfs = {mid: RandomForestRegressor(n_estimators=100) for _,_,mid in bclfs_keys} 
+        return {mid: RandomForestRegressor(n_estimators=100) for _,_,mid in bclfs_keys} 
 
 bclfs = classifier_init()
 
