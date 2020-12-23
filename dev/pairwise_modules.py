@@ -129,7 +129,7 @@ def antis(p): # when p -> 1, antivotes -> 0 , should be decreasing monotonic fun
         return 1/exp(4*p)  # 0.0 to 1.0 -> [1.0, 0.67, 0.45, 0.30, 0.20, 0.14, 0.09, 0.06, 0.04, 0.03, 0.02]
     return 1-p
 
-rkf = RepeatedKFold(n_splits=5, n_repeats=1, random_state=0)
+rkf = RepeatedKFold(n_splits=10, n_repeats=5, random_state=0)
 scores = []
 for idx_train,idx_test in rkf.split(range(len(df))):
     train_df, test_df = df.loc[idx_train], df.loc[idx_test]

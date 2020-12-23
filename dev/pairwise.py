@@ -167,7 +167,7 @@ def antis(p): # when p -> 1, antivotes -> 0 , should be decreasing monotonic fun
         return min(1/p if p > 0 else 50, 50) # 0.0 to 1.0 -> [50, 10.0, 5.0, 3.33, 2.5, 2.0, 1.66, 1.43, 1.25, 1.11, 1.0]
     if normalise_num == 3:
         return 1/exp(4*p)  # 0.0 to 1.0 -> [1.0, 0.67, 0.45, 0.30, 0.20, 0.14, 0.09, 0.06, 0.04, 0.03, 0.02]
-    return 1-p
+    return 1-p 
 
 
 n_folds = 5
@@ -201,6 +201,8 @@ for f in range(n_folds):
 
 # print(scores)
 # print(f'score: {np.average(scores)}')
-print(np.average(scores))
+
+# print(np.mean(scores))
+print(str(np.round(np.mean(scores),3))+'\u00B1'+str(np.round(np.std(scores),3)))
 
 # TODOS: mean and variance, 

@@ -127,7 +127,7 @@ for i, j, mid in bclfs_keys:
 #         return 1/exp(4*p)  # 0.0 to 1.0 -> [1.0, 0.67, 0.45, 0.30, 0.20, 0.14, 0.09, 0.06, 0.04, 0.03, 0.02]
 #     return 1-p
 
-rkf = RepeatedKFold(n_splits=5, n_repeats=1, random_state=0)
+rkf = RepeatedKFold(n_splits=10, n_repeats=5, random_state=0)
 scores = []
 counter = 0
 for idx_train,idx_test in rkf.split(range(len(df))):
@@ -141,7 +141,7 @@ for idx_train,idx_test in rkf.split(range(len(df))):
         bclfs_pred[mid] = model.predict(x_test)
     # construct ranking predictions
     n_preds = len(x_test)
-    new_col = f'fold_{counter}_votes'
+    # new_col = f'fold_{counter}_votes'
     y_pred = []
     # def calc(row, y): # y : y_test_row
     #     votes = 0
@@ -151,7 +151,8 @@ for idx_train,idx_test in rkf.split(range(len(df))):
     #     df['votes'] = df.apply(lambda row: calc(row, y), axis=1)
 
     for y in range(n_preds):
-        df['votes'] = 0     # initialise votes for each training row
+        df['votes'] = 0.0     # initialise votes for each training row
+        # TODO: take unique rankings of training indices (), ... [ unless you have weights, rename 'votes' to 'weights' ]
         for r in idx_train: # row
             for _, _, mid in bclfs_keys:
                 df['votes'][r] += bclfs_pred[mid][y] if df[mid][r] == 1 else 1 - bclfs_pred[mid][y]
