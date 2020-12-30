@@ -110,7 +110,6 @@ def set_antivotes(conf):    # when conf -> 1, antivotes -> 0 , should be decreas
     else:
         return 1-conf               # 0.0 to 1.0 -> [1.0, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1, 0.0]
 
-
 def find_prediction(row):
     antivotes = [0 for _ in range(n_labels)]
     for i, j, mid in bclfs_keys:
@@ -128,12 +127,14 @@ for idx_train,idx_test in rkf.split(range(len(df))):
         y_train = train_df[mid]
         model = bclfs[mid]
         model.fit(x_train, y_train)
-        test_df[mid] = list(model.predict(x_test)) # mid contains the antivotes for each prediction
+        test_df[mid] = list(model.predict(x_test)) # mid contains the predictions for each test sample from model 'mid'
 
     # step 2: use result of classifiers to make predictions
-    test_df['prediction'] = test_df.apply(lambda row: find_prediction(row), axis=1) # antivotes of the models for each test row
+    test_df['prediction'] = test_df.apply(lambda row: find_prediction(row), axis=1) # prediction based on the models' values for each test row
     test_df['kendalltau'] = test_df.apply(lambda row: kendalltau(row['ranking'], row['prediction'])[0], axis=1)
     
     scores.append(np.mean(test_df['kendalltau']))
+
+    # TODO: with dataframes it is way to slow, probably object type is bad
 
 print(str(np.round(np.mean(scores),3))+'\u00B1'+str(np.round(np.std(scores),3)))
