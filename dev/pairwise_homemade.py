@@ -131,7 +131,7 @@ shuffled_indices = np.random.permutation(n_samples)
 folds_test_indices = np.array_split(shuffled_indices, n_folds) # holds the test indices for each fold 
 scores = [0.0]*n_folds
 for f in range(n_folds):
-    # bclfs = classifier_init() # initialise again to clean up model before fitting, doesn't make any difference
+    # step 1: train classifiers
     test_indices = set(folds_test_indices[f])
     train_df, test_df = df[~df.index.isin(test_indices)], df[df.index.isin(test_indices)]
     x_train = train_df[feature_names]
@@ -143,18 +143,17 @@ for f in range(n_folds):
         model = bclfs[mid]
         model.fit(x_train, y_train)
         bclfs_pred[mid] = model.predict(x_test)
-    # construct ranking predictions
+    # step 2: use result of classifiers to make predictions
     n_preds = len(x_test)
     y_test = test_df['ranking']
     y_pred = []
     for p in range(n_preds):
-        # calculate ranking prediction from the outputs of binary classifiers
         antivotes = [0 for _ in range(n_labels)]
         for i, j, mid in bclfs_keys:
             antivotes[i] += set_antivotes(1 - bclfs_pred[mid][p])    # when close to 0, i is better, give more antivote to j
             antivotes[j] += set_antivotes(bclfs_pred[mid][p])        # when close to 1, j is better, give antivote to i
-        y_pred.append(convert_ranking(np.argsort(antivotes)))           # 2 times argsort
-    fold_scores = [my_kendall_tau(yt, yp) for yt, yp in zip(list(y_test), y_pred)]
+        y_pred.append(convert_ranking(np.argsort(antivotes)))        # 2 times argsort to find label-fixed ranking
+    fold_scores = [my_kendall_tau(yt, yp) for yt, yp in zip(list(y_test), y_pred)]  # borda count
     scores[f] = np.mean(fold_scores)
 
 print(np.round(np.mean(scores),3))
