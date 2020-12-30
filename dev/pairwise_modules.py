@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-
 ################################################################
 # Author            : yiorgosynkl (find me in Github: https://github.com/yiorgosynkl)
 # Repository        : label-ranking
-# Date Created      : 20201126
-# Description       : use binary classifiers for preference of each label, then combine all results for final ranking prediction
+# Description       : 
+#   use binary classifiers for preference of each label, then combine all results for final ranking prediction
+#   then combine all results (with ad-hoc, natural way) for final ranking prediction
+#   using official implementations of kendalltau and KFold
 ################################################################
 
 #________________ imports ________________#
@@ -110,31 +110,30 @@ def set_antivotes(conf):    # when conf -> 1, antivotes -> 0 , should be decreas
     else:
         return 1-conf               # 0.0 to 1.0 -> [1.0, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1, 0.0]
 
+
+def find_prediction(row):
+    antivotes = [0 for _ in range(n_labels)]
+    for i, j, mid in bclfs_keys:
+        antivotes[i] += set_antivotes(1 - row[mid])   # when close to 0, i is better, give more antivote to j
+        antivotes[j] += set_antivotes(row[mid])       # when close to 1, j is better, give antivote to i
+    return convert_ranking(np.argsort(antivotes))     # 2 times argsort to find label-fixed ranking
+
 rkf = RepeatedKFold(n_splits=10, n_repeats=5, random_state=0)
 scores = []
 for idx_train,idx_test in rkf.split(range(len(df))):
     # step 1: train classifiers
-    train_df, test_df = df.loc[idx_train], df.loc[idx_test]
+    train_df, test_df = df.loc[idx_train], df.loc[idx_test].drop(columns=[mid for _,_,mid in bclfs_keys])
     x_train, x_test = train_df[feature_names], test_df[feature_names]
-    bclfs_pred = {}
     for _, _, mid in bclfs_keys:
-        y_train, y_test = train_df[mid], test_df[mid]
+        y_train = train_df[mid]
         model = bclfs[mid]
         model.fit(x_train, y_train)
-        bclfs_pred[mid] = model.predict(x_test)
-    # step 2: use result of classifiers to make predictions
-    n_preds = len(x_test)
-    y_test = test_df['ranking']
-    y_pred = []
-    for p in range(n_preds):
-        antivotes = [0 for _ in range(n_labels)]
-        for i, j, mid in bclfs_keys:
-            antivotes[i] += set_antivotes(1 - bclfs_pred[mid][p])    # when close to 0, i is better, give more antivote to j
-            antivotes[j] += set_antivotes(bclfs_pred[mid][p])        # when close to 1, j is better, give antivote to i
-        y_pred.append(convert_ranking(np.argsort(antivotes)))        # 2 times argsort to find label-fixed ranking
-    fold_scores = [kendalltau(yt, yp)[0] for yt, yp in zip(list(y_test), y_pred)]
-    scores.append(np.mean(fold_scores))
+        test_df[mid] = list(model.predict(x_test)) # mid contains the antivotes for each prediction
 
-print(np.average(scores))
-# print(np.round(np.mean(scores),3))
-# print(str(np.round(np.mean(scores),3))+'\u00B1'+str(np.round(np.std(scores),3)))
+    # step 2: use result of classifiers to make predictions
+    test_df['prediction'] = test_df.apply(lambda row: find_prediction(row), axis=1) # antivotes of the models for each test row
+    test_df['kendalltau'] = test_df.apply(lambda row: kendalltau(row['ranking'], row['prediction'])[0], axis=1)
+    
+    scores.append(np.mean(test_df['kendalltau']))
+
+print(str(np.round(np.mean(scores),3))+'\u00B1'+str(np.round(np.std(scores),3)))
