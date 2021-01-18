@@ -29,7 +29,7 @@ np.random.seed(0)
 params = {                                                          # TOSET
     'csv_num' : 8 if len(sys.argv) < 2 else int(sys.argv[1]),       # choose dataset, num in {0, 1,..., 17} 
     'clf_num' : 5 if len(sys.argv) < 3 else int(sys.argv[2]),       # choose classifier, num in set {0, ..., 5}
-    'aggregation_num': 3 if len(sys.argv) < 4 else int(sys.argv[3])
+    'aggregation_num': 0 if len(sys.argv) < 4 else int(sys.argv[3])
 }
 
 # import dataset
@@ -145,40 +145,30 @@ for idx_train,idx_test in rkf.split(range(len(df))):
     candidates_df['count'] =  candidates_df.apply(lambda row: len(train_df[ train_df['ranking_as_string'] == row['ranking_as_string'] ]), axis='columns' )
     candidates_df['frequency'] =  candidates_df.apply(lambda row: row['count']/len(train_df), axis='columns' )
 
-    # initialise dataframe
-    # test_df['prediction'] = pd.Series(np.nan, dtype='object') # important declaration to specify type
-    test_df['prediction'] = pd.Series([], dtype='object') # important declaration to specify type
-    # test_df['prediction'] = test_df['ranking'] # important declaration to specify type, TOASK: which way is better??
-    
-    for idx in idx_test:
-        # candidates_df['votes'] = 0.0
-        # for _, _, mid in bclfs_keys:
-        #     candidates_df['votes'] += candidates_df.apply(lambda row: test_df.loc[idx, mid] if row[mid] == 0 else 1-test_df.loc[idx, mid], axis='columns' )
-        candidates_df['votes'] = candidates_df.apply(lambda row: sum(1 - test_df.loc[idx, mid] if row[mid] == 0 else test_df.loc[idx, mid] for _, _, mid in bclfs_keys), axis='columns' )
-
-        #____ make prediction using candidates array ____#
-
+    def predict_row(test_row):
+        candidates_df['votes'] = candidates_df.apply(lambda row: sum(1 - test_row[mid] if row[mid] == 0 else test_row[mid] for _, _, mid in bclfs_keys), axis='columns' )
         aggregation_num = params['aggregation_num']
         if aggregation_num == 0:
             # (i) choose the ranking with maximum votes from models
-            test_df.at[idx, 'prediction'] = candidates_df['ranking'].loc[candidates_df['votes'].argmax()]
+            return candidates_df['ranking'].loc[candidates_df['votes'].argmax()]
             # test_df['prediction'][idx] = candidates_df['ranking'].loc[candidates_df['votes'].argmax()]  # TOASK: why is it different 
         elif aggregation_num == 1:
             # (ii) choose the ranking with maximum votes and maximum times shown
             candidates_df['weights'] = candidates_df.apply(lambda row: row['frequency']*row['votes'], axis='columns' )
-            test_df.at[idx, 'prediction'] = candidates_df['ranking'].loc[candidates_df['weights'].argmax()]
+            return candidates_df['ranking'].loc[candidates_df['weights'].argmax()]
+            # test_df.at[idx, 'prediction'] = candidates_df['ranking'].loc[candidates_df['weights'].argmax()]
         elif aggregation_num == 2:
             # (iv) aggregate based on votes and frequency (kemeny optimal aggregation)
-            candidates_df['weights'] = candidates_df.apply(lambda row: row['frequency']*row['votes'], axis='columns' )
-            test_df.at[idx, 'prediction'] = weighted_kemeny_rank_aggregation(list(candidates_df['ranking']), list(candidates_df['weights']))
+            candidates_df['weights'] = candidates_df.apply(lambda row: (1+row['frequency'])*row['votes'], axis='columns' )
+            return weighted_kemeny_rank_aggregation(list(candidates_df['ranking']), list(candidates_df['weights']))
+            # test_df.at[idx, 'prediction'] = weighted_kemeny_rank_aggregation(list(candidates_df['ranking']), list(candidates_df['weights']))
         else:
             # (iv) aggregate based on votes and frequency (kemeny optimal aggregation)
             candidates_df['weights'] = candidates_df.apply(lambda row: row['frequency']*row['votes'], axis='columns' )
-            test_df.at[idx, 'prediction'] = weighted_kemeny_rank_aggregation(list(candidates_df['ranking']), list(candidates_df['weights']))
+            return weighted_kemeny_rank_aggregation(list(candidates_df['ranking']), list(candidates_df['weights']))
 
+    test_df['prediction'] = test_df.apply(lambda row: predict_row(row), axis='columns' )
     test_df['kendalltau'] = test_df.apply(lambda row: kendalltau(row['ranking'], row['prediction'])[0], axis=1)
     scores.append(np.mean(test_df['kendalltau']))    
-    
-    # TODO: with dataframes it is way to slow, probably object type is bad
 
 print(str(np.round(np.mean(scores),3))+'\u00B1'+str(np.round(np.std(scores),3)))
