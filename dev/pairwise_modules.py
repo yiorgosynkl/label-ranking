@@ -117,7 +117,7 @@ def find_prediction(row):
         antivotes[j] += set_antivotes(row[mid])       # when close to 1, j is better, give antivote to i
     return convert_ranking(np.argsort(antivotes))     # 2 times argsort to find label-fixed ranking
 
-rkf = RepeatedKFold(n_splits=10, n_repeats=5, random_state=0)
+rkf = RepeatedKFold(n_splits=10, n_repeats=5, random_state=1234)
 scores = []
 for idx_train,idx_test in rkf.split(range(len(df))):
     # step 1: train classifiers

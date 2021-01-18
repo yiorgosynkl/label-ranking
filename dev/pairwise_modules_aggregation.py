@@ -15,7 +15,7 @@ import pandas as pd
 import numpy as np
 import sys
 #from math import exp
-#from itertools import combinations, permutations
+from itertools import combinations, permutations
 from scipy.stats import kendalltau
 
 from sklearn.svm import SVC, SVR
@@ -28,7 +28,8 @@ np.random.seed(0)
 
 params = {                                                          # TOSET
     'csv_num' : 8 if len(sys.argv) < 2 else int(sys.argv[1]),       # choose dataset, num in {0, 1,..., 17} 
-    'clf_num' : 5 if len(sys.argv) < 3 else int(sys.argv[2])       # choose classifier, num in set {0, ..., 5}
+    'clf_num' : 5 if len(sys.argv) < 3 else int(sys.argv[2]),       # choose classifier, num in set {0, ..., 5}
+    'aggregation_num': 3 if len(sys.argv) < 4 else int(sys.argv[3])
 }
 
 # import dataset
@@ -101,7 +102,32 @@ for i, j, mid in bclfs_keys:
     df[mid] = df['ranking'].apply(lambda r: conv(r, i, j))
 
 
-rkf = RepeatedKFold(n_splits=10, n_repeats=5, random_state=0)
+# helper function
+def weighted_kemeny_rank_aggregation(rs, ws):
+    n_ls = len(rs[0])                 # number of labels
+    # n_rs = len(rs)                  # number of rankings
+    # n_ps = n_ls * (n_ls-1) // 2     # number of pairs of labels
+    # 1st step
+    scores = {}
+    for i, j in combinations(range(n_ls), 2):  # loop p times, labels (alpha and bravo)
+        count_ij, count_ji = 0, 0
+        for r, w in zip(rs, ws):
+            if r[i] < r[j]:
+                count_ij +=  w
+            else:
+                count_ji += w
+        scores[f'{i}<{j}'] = count_ij
+        scores[f'{j}<{i}'] = count_ji
+    # 2nd step
+    best_cand, best_score = [], 0
+    for perm in permutations(range(n_ls)):
+        cand = list(perm)   # candidate
+        score = sum(scores[f'{i}<{j}'] if cand[i] < cand[j] else scores[f'{j}<{i}'] for i, j in combinations(range(n_ls), 2))
+        if best_score < score:
+            best_cand, best_score = cand, score
+    return np.array(best_cand)
+
+rkf = RepeatedKFold(n_splits=10, n_repeats=5, random_state=1234)
 scores = []
 for idx_train,idx_test in rkf.split(range(len(df))):
     # step 1: train classifiers
@@ -121,7 +147,8 @@ for idx_train,idx_test in rkf.split(range(len(df))):
 
     # initialise dataframe
     # test_df['prediction'] = pd.Series(np.nan, dtype='object') # important declaration to specify type
-    test_df['prediction'] = test_df['ranking'] # important declaration to specify type, TOASK: which way is better??
+    test_df['prediction'] = pd.Series([], dtype='object') # important declaration to specify type
+    # test_df['prediction'] = test_df['ranking'] # important declaration to specify type, TOASK: which way is better??
     
     for idx in idx_test:
         # candidates_df['votes'] = 0.0
@@ -129,11 +156,25 @@ for idx_train,idx_test in rkf.split(range(len(df))):
         #     candidates_df['votes'] += candidates_df.apply(lambda row: test_df.loc[idx, mid] if row[mid] == 0 else 1-test_df.loc[idx, mid], axis='columns' )
         candidates_df['votes'] = candidates_df.apply(lambda row: sum(1 - test_df.loc[idx, mid] if row[mid] == 0 else test_df.loc[idx, mid] for _, _, mid in bclfs_keys), axis='columns' )
 
-        # make prediction using candidates array
-        # the following lines choose the ranking with maximum votes from models
+        #____ make prediction using candidates array ____#
 
-        test_df.at[idx, 'prediction'] = candidates_df['ranking'].loc[candidates_df['votes'].argmax()] # TOASK: why is it different 
-        # test_df['prediction'][idx] = candidates_df['ranking'].loc[candidates_df['votes'].argmax()]
+        aggregation_num = params['aggregation_num']
+        if aggregation_num == 0:
+            # (i) choose the ranking with maximum votes from models
+            test_df.at[idx, 'prediction'] = candidates_df['ranking'].loc[candidates_df['votes'].argmax()]
+            # test_df['prediction'][idx] = candidates_df['ranking'].loc[candidates_df['votes'].argmax()]  # TOASK: why is it different 
+        elif aggregation_num == 1:
+            # (ii) choose the ranking with maximum votes and maximum times shown
+            candidates_df['weights'] = candidates_df.apply(lambda row: row['frequency']*row['votes'], axis='columns' )
+            test_df.at[idx, 'prediction'] = candidates_df['ranking'].loc[candidates_df['weights'].argmax()]
+        elif aggregation_num == 2:
+            # (iv) aggregate based on votes and frequency (kemeny optimal aggregation)
+            candidates_df['weights'] = candidates_df.apply(lambda row: row['frequency']*row['votes'], axis='columns' )
+            test_df.at[idx, 'prediction'] = weighted_kemeny_rank_aggregation(list(candidates_df['ranking']), list(candidates_df['weights']))
+        else:
+            # (iv) aggregate based on votes and frequency (kemeny optimal aggregation)
+            candidates_df['weights'] = candidates_df.apply(lambda row: row['frequency']*row['votes'], axis='columns' )
+            test_df.at[idx, 'prediction'] = weighted_kemeny_rank_aggregation(list(candidates_df['ranking']), list(candidates_df['weights']))
 
     test_df['kendalltau'] = test_df.apply(lambda row: kendalltau(row['ranking'], row['prediction'])[0], axis=1)
     scores.append(np.mean(test_df['kendalltau']))    
