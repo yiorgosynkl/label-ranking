@@ -4,9 +4,6 @@
 ################################################################
 # Author            : yiorgosynkl (find me in Github: https://github.com/yiorgosynkl)
 # Repository        : label-ranking
-# Description       : 
-#   aaaaaaaa aa aa aaa
-#   aaaaa aa a aa aaa 
 ################################################################
 
 #________________ imports ________________#
@@ -29,7 +26,7 @@ np.random.seed(0)
 params = {                                                          # TOSET
     'csv_num' : 8 if len(sys.argv) < 2 else int(sys.argv[1]),       # choose dataset, num in {0, 1,..., 17} 
     'clf_num' : 5 if len(sys.argv) < 3 else int(sys.argv[2]),       # choose classifier, num in set {0, ..., 5}
-    'aggregation_num': 0 if len(sys.argv) < 4 else int(sys.argv[3])
+    'aggregation_num': 6 if len(sys.argv) < 4 else int(sys.argv[3])
 }
 
 # import dataset
@@ -101,8 +98,18 @@ def conv(ranking, mn, mx):
 for i, j, mid in bclfs_keys:
     df[mid] = df['ranking'].apply(lambda r: conv(r, i, j))
 
+# aggregation method
+def weighted_borda_rank_aggregation(rs, ws):
+    n_labels = len(rs[0])
+    votes = [0 for _ in range(n_labels)]
+    for rank, w in zip(rs, ws):
+        for lbl, pos in enumerate(rank):
+            votes[lbl] += w*(n_labels - pos)
+    out = np.argsort(votes)[::-1]
+    return np.argsort(out)
 
-# helper function
+
+# aggregation method
 def weighted_kemeny_rank_aggregation(rs, ws):
     n_ls = len(rs[0])                 # number of labels
     # n_rs = len(rs)                  # number of rankings
@@ -127,6 +134,46 @@ def weighted_kemeny_rank_aggregation(rs, ws):
             best_cand, best_score = cand, score
     return np.array(best_cand)
 
+
+def predict_row(test_row):
+    candidates_df['votes'] = candidates_df.apply(lambda row: sum(1 - test_row[mid] if row[mid] == 0 else test_row[mid] for _, _, mid in bclfs_keys), axis='columns' )
+    aggregation_num = params['aggregation_num']
+    if aggregation_num == 0:
+        # * choose the maximum ranking based exclusively on votes from models
+        return candidates_df['ranking'].loc[candidates_df['votes'].argmax()]
+    elif aggregation_num == 1:
+        # * choose the maximum ranking based on based mainly on votes and a little on frequency
+        candidates_df['weights'] = candidates_df.apply(lambda row: (1+row['frequency'])*row['votes'], axis='columns' )
+        return candidates_df['ranking'].loc[candidates_df['weights'].argmax()]
+    elif aggregation_num == 2:
+        # * choose the maximum ranking based a little on votes and mainly on frequency
+        candidates_df['weights'] = candidates_df.apply(lambda row: row['frequency']*row['votes'], axis='columns' )
+        return candidates_df['ranking'].loc[candidates_df['weights'].argmax()]
+    elif aggregation_num == 3:
+        # * aggregate based exclusively on votes (weighted borda)
+        return weighted_borda_rank_aggregation(list(candidates_df['ranking']), list(candidates_df['votes']))
+    elif aggregation_num == 4:
+        # * aggregate based mainly on votes and a little on frequency (weighted borda)
+        candidates_df['weights'] = candidates_df.apply(lambda row: (1+row['frequency'])*row['votes'], axis='columns' )
+        return weighted_borda_rank_aggregation(list(candidates_df['ranking']), list(candidates_df['weights']))
+    elif aggregation_num == 5:
+        # * aggregate based a little on votes and mainly on frequency (weighted borda)
+        candidates_df['weights'] = candidates_df.apply(lambda row: row['frequency']*row['votes'], axis='columns' )
+        return weighted_borda_rank_aggregation(list(candidates_df['ranking']), list(candidates_df['weights']))
+    elif aggregation_num == 6:
+        # * aggregate based exclusively on votes (kemeny optimal aggregation)
+        return weighted_kemeny_rank_aggregation(list(candidates_df['ranking']), list(candidates_df['votes']))
+    elif aggregation_num == 7:
+        # aggregate based mainly on votes and a little on frequency (kemeny optimal aggregation)
+        candidates_df['weights'] = candidates_df.apply(lambda row: (1+row['frequency'])*row['votes'], axis='columns' )
+        return weighted_kemeny_rank_aggregation(list(candidates_df['ranking']), list(candidates_df['weights']))
+    else: # aggregation_num == 8:
+        # * aggregate based a little on votes and mainly on frequency (kemeny optimal aggregation)
+        candidates_df['weights'] = candidates_df.apply(lambda row: row['frequency']*row['votes'], axis='columns' )
+        return weighted_kemeny_rank_aggregation(list(candidates_df['ranking']), list(candidates_df['weights']))
+        # test_df.at[idx, 'prediction'] = weighted_kemeny_rank_aggregation(list(candidates_df['ranking']), list(candidates_df['weights']))
+
+
 rkf = RepeatedKFold(n_splits=10, n_repeats=5, random_state=1234)
 scores = []
 for idx_train,idx_test in rkf.split(range(len(df))):
@@ -144,28 +191,6 @@ for idx_train,idx_test in rkf.split(range(len(df))):
     candidates_df = train_df.drop(columns=feature_names).drop_duplicates(subset=['ranking_as_string']).reset_index(drop=True)
     candidates_df['count'] =  candidates_df.apply(lambda row: len(train_df[ train_df['ranking_as_string'] == row['ranking_as_string'] ]), axis='columns' )
     candidates_df['frequency'] =  candidates_df.apply(lambda row: row['count']/len(train_df), axis='columns' )
-
-    def predict_row(test_row):
-        candidates_df['votes'] = candidates_df.apply(lambda row: sum(1 - test_row[mid] if row[mid] == 0 else test_row[mid] for _, _, mid in bclfs_keys), axis='columns' )
-        aggregation_num = params['aggregation_num']
-        if aggregation_num == 0:
-            # (i) choose the ranking with maximum votes from models
-            return candidates_df['ranking'].loc[candidates_df['votes'].argmax()]
-            # test_df['prediction'][idx] = candidates_df['ranking'].loc[candidates_df['votes'].argmax()]  # TOASK: why is it different 
-        elif aggregation_num == 1:
-            # (ii) choose the ranking with maximum votes and maximum times shown
-            candidates_df['weights'] = candidates_df.apply(lambda row: row['frequency']*row['votes'], axis='columns' )
-            return candidates_df['ranking'].loc[candidates_df['weights'].argmax()]
-            # test_df.at[idx, 'prediction'] = candidates_df['ranking'].loc[candidates_df['weights'].argmax()]
-        elif aggregation_num == 2:
-            # (iv) aggregate based on votes and frequency (kemeny optimal aggregation)
-            candidates_df['weights'] = candidates_df.apply(lambda row: (1+row['frequency'])*row['votes'], axis='columns' )
-            return weighted_kemeny_rank_aggregation(list(candidates_df['ranking']), list(candidates_df['weights']))
-            # test_df.at[idx, 'prediction'] = weighted_kemeny_rank_aggregation(list(candidates_df['ranking']), list(candidates_df['weights']))
-        else:
-            # (iv) aggregate based on votes and frequency (kemeny optimal aggregation)
-            candidates_df['weights'] = candidates_df.apply(lambda row: row['frequency']*row['votes'], axis='columns' )
-            return weighted_kemeny_rank_aggregation(list(candidates_df['ranking']), list(candidates_df['weights']))
 
     test_df['prediction'] = test_df.apply(lambda row: predict_row(row), axis='columns' )
     test_df['kendalltau'] = test_df.apply(lambda row: kendalltau(row['ranking'], row['prediction'])[0], axis=1)
