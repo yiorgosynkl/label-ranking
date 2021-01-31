@@ -26,7 +26,7 @@ np.random.seed(0)
 params = {                                                          # TOSET
     'csv_num' : 8 if len(sys.argv) < 2 else int(sys.argv[1]),       # choose dataset, num in {0, 1,..., 17} 
     'clf_num' : 5 if len(sys.argv) < 3 else int(sys.argv[2]),       # choose classifier, num in set {0, ..., 5}
-    'aggregation_num': 9 if len(sys.argv) < 4 else int(sys.argv[3])
+    'aggregation_num': 0 if len(sys.argv) < 4 else int(sys.argv[3])
 }
 
 # import dataset
@@ -134,43 +134,6 @@ def weighted_kemeny_rank_aggregation(rs, ws):
             best_cand, best_score = cand, score
     return np.array(best_cand)
 
-def kwiksort_rank_aggregation(rs, ws):
-    """Given some rankings (rs) and the weights return a close-to-optimal rank aggregation
-    Create the majority tournament and do kwiksort, 2 approximation
-    """
-    # produce adjeceny matrix of tournament (weights)
-    n_labels = len(rs[0])
-    adj_matrix = [[0 for _ in range(n_labels)] for _ in range(n_labels)]  # 1 if edge from row node to col node
-    for i in range(n_labels):
-        for j in range(i+1, n_labels):
-            cnt = 0
-            for r, w in zip(rs, ws):
-                cnt = cnt+w if r[i] < r[j] else cnt-w   # i < j in ranking
-            if cnt >= 0:
-                adj_matrix[i][j] = 1
-            else:
-                adj_matrix[j][i] = 1
-
-    def recurse(arr):
-        if len(arr) <= 1:
-            return arr
-        slow, fast = 0, 0 # slow and fast pointer and pivot = arr[-1] 
-        while fast < len(arr) - 1:
-            start_node, end_node = arr[fast], arr[-1]
-            if adj_matrix[start_node][end_node] == 1: 
-                arr[fast], arr[slow] = arr[slow], arr[fast]
-                slow += 1
-            fast += 1
-        arr[slow], arr[-1] = arr[-1], arr[slow]
-        return recurse(arr[:slow]) + [ arr[slow] ]+ recurse(arr[slow+1:])
-    
-    # TOASK: should I shuffle the labels so it won't be 
-    begin_pf = [i for i in range(n_labels)]
-    aggregate_pf = recurse(begin_pf)
-    aggregate_lf = list(np.argsort(aggregate_pf))
-    return aggregate_lf
-
-
 def predict_row(test_row):
     candidates_df['votes'] = candidates_df.apply(lambda row: sum(1 - test_row[mid] if row[mid] == 0 else test_row[mid] for _, _, mid in bclfs_keys), axis='columns' )
     aggregation_num = params['aggregation_num']
@@ -203,15 +166,11 @@ def predict_row(test_row):
         # aggregate based mainly on votes and a little on frequency (kemeny optimal aggregation)
         candidates_df['weights'] = candidates_df.apply(lambda row: (1+row['frequency'])*row['votes'], axis='columns' )
         return weighted_kemeny_rank_aggregation(list(candidates_df['ranking']), list(candidates_df['weights']))
-    elif aggregation_num == 8:
+    else: # aggregation_num == 8:
         # * aggregate based a little on votes and mainly on frequency (kemeny optimal aggregation)
         candidates_df['weights'] = candidates_df.apply(lambda row: row['frequency']*row['votes'], axis='columns' )
         return weighted_kemeny_rank_aggregation(list(candidates_df['ranking']), list(candidates_df['weights']))
         # test_df.at[idx, 'prediction'] = weighted_kemeny_rank_aggregation(list(candidates_df['ranking']), list(candidates_df['weights']))
-    else: # aggregation_num == 9:
-        # * aggregate with kwiksort and votes
-        candidates_df['weights'] = candidates_df.apply(lambda row: row['frequency']*row['votes'], axis='columns' )
-        return kwiksort_rank_aggregation(list(candidates_df['ranking']), list(candidates_df['weights']))
 
 rkf = RepeatedKFold(n_splits=10, n_repeats=5, random_state=1234)
 scores = []
