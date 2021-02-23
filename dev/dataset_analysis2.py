@@ -10,9 +10,11 @@
 import pandas as pd
 import numpy as np
 from scipy.stats import kendalltau
-
+from math import factorial
 
 import timeit
+import matplotlib.pyplot as plt
+from matplotlib.ticker import MaxNLocator
 
 # set random seed
 np.random.seed(0)   # to reproduce same results for random forest
@@ -23,9 +25,11 @@ np.random.seed(0)   # to reproduce same results for random forest
 
 
 # import dataset
-csv_choices = ['authorship', 'bodyfat', 'calhousing', 'cpu-small', 'fried', 'glass', 'housing', 'iris', 'pendigits', 'segment', 'stock', 'vehicle', 'vowel', 'wine', 'wisconsin']
+# csv_choices = ['authorship', 'bodyfat', 'calhousing', 'cpu-small', 'fried', 'glass', 'housing', 'iris', 'pendigits', 'segment', 'stock', 'vehicle', 'vowel', 'wine', 'wisconsin']
 # csv_choices = ['fried', 'pendigits', 'segment', 'vowel', 'wisconsin']
+# csv_choices = ['authorship', 'bodyfat', 'calhousing', 'cpu-small', 'glass', 'housing', 'iris', 'stock', 'vehicle', 'vowel', 'wine', 'wisconsin']
 # csv_choices = ['iris', 'wine']
+csv_choices = ['vowel']
 
 # s string -> return n_labels and label_names
 def get_labels(s):
@@ -71,7 +75,35 @@ for csv_name in csv_choices:
         for j in range(i, n_unique_rankings):
             out_array[i][j] = out_array[j][i] = np.round( kendalltau(unique_rankings[i],unique_rankings[j])[0], 3)
         
+    counts = []
     for i, row in enumerate(out_array):
         count = len(df[ df['ranking_as_string'] == unique_rankings_as_string[i] ])
+        counts.append(count)
         out_string = f'{unique_rankings[i]}, {unique_rankings_as_string[i]}, {count}, {i}, ' + ','.join(str(x) for x in row)
         print(out_string)
+
+    counts.sort()
+
+    # plt.figure()
+    fig, ax = plt.subplots()    
+    plt.plot(range(len(counts)), counts)
+    ax.set(title=f'sorted number of appearances of unique rankings\n(0 appearances not included)\ndataset: {csv_name}', ylabel='number of appereances')
+    ax.xaxis.set_major_locator(MaxNLocator(integer=True))
+    ax.yaxis.set_major_locator(MaxNLocator(integer=True))
+    plt.savefig(f'dataset_analysis/{csv_name}_classifier_appereances_no0.png')
+    plt.close(fig)
+
+    n_total_rankings = factorial(n_labels)
+    if n_total_rankings < 10**7:
+        n_missing_rankings = n_total_rankings - len(counts)
+        counts = [0]*n_missing_rankings + counts
+
+        # plt.figure()
+        fig, ax = plt.subplots()
+        plt.plot(range(len(counts)), counts)
+        ax.set(title=f'sorted number of appearances of unique rankings\n(0 appearances included)\ndataset: {csv_name}', ylabel='number of appereances')
+        ax.xaxis.set_major_locator(MaxNLocator(integer=True))
+        ax.yaxis.set_major_locator(MaxNLocator(integer=True))
+        plt.savefig(f'dataset_analysis/{csv_name}_classifier_appereances_with0.png')
+        plt.close(fig)
+
