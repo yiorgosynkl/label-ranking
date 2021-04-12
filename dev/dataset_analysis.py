@@ -33,8 +33,8 @@ np.random.seed(0)   # to reproduce same results for random forest
 # import dataset
 # csv_choices = ['authorship', 'bodyfat', 'calhousing', 'cpu-small', 'fried', 'glass', 'housing', 'iris', 'pendigits', 'segment', 'stock', 'vehicle', 'vowel', 'wine', 'wisconsin']
 # csv_choices = ['fried', 'pendigits', 'segment', 'vowel', 'wisconsin']
-# csv_choices = ['authorship', 'bodyfat', 'calhousing', 'cpu-small', 'glass', 'housing', 'iris', 'stock', 'vehicle', 'vowel', 'wine', 'wisconsin']
-csv_choices = ['iris']
+csv_choices = ['authorship', 'bodyfat', 'calhousing', 'cpu-small', 'glass', 'housing', 'iris', 'stock', 'vehicle', 'vowel', 'wine', 'wisconsin']
+# csv_choices = ['iris']
 
 # s string -> return n_labels and label_names
 def get_labels(s):
@@ -121,23 +121,23 @@ for csv_name in csv_choices:
     acc_string_mean = f'{np.round(np.mean(acc_scores),3)}\u00B1{np.round(np.std(acc_scores),3)}'
     
 
-    fig, ax = plt.subplots()    
-    plt.hist(auc_scores, int(1/0.02), range=[0.0, 1.0])  # 50 bars
-    ax.set(title=f'histogram of auc scores (50 bars) ({auc_string_mean})\ndataset: {csv_name}', ylabel='number of classifiers', xlabel='roc auc score')
-    plt.savefig(f'dataset_analysis/{csv_name}_50bars_auc.png')
-    plt.close(fig)
+    # fig, ax = plt.subplots()    
+    # plt.hist(auc_scores, int(1/0.02), range=[0.0, 1.0])  # 50 bars
+    # ax.set(title=f'histogram of auc scores (50 bars) ({auc_string_mean})\ndataset: {csv_name}', ylabel='number of classifiers', xlabel='roc auc score')
+    # plt.savefig(f'dataset_analysis/{csv_name}_50bars_auc.png')
+    # plt.close(fig)
 
-    fig, ax = plt.subplots()    
-    plt.hist(f1_scores, int(1/0.02), range=[0.0, 1.0])  # 50 bars
-    ax.set(title=f'histogram of f1 scores (50 bars) ({f1_string_mean})\ndataset: {csv_name}', ylabel='number of classifiers', xlabel='f1 score')
-    plt.savefig(f'dataset_analysis/{csv_name}_50bars_f1.png')
-    plt.close(fig)
+    # fig, ax = plt.subplots()    
+    # plt.hist(f1_scores, int(1/0.02), range=[0.0, 1.0])  # 50 bars
+    # ax.set(title=f'histogram of f1 scores (50 bars) ({f1_string_mean})\ndataset: {csv_name}', ylabel='number of classifiers', xlabel='f1 score')
+    # plt.savefig(f'dataset_analysis/{csv_name}_50bars_f1.png')
+    # plt.close(fig)
 
-    fig, ax = plt.subplots()    
-    plt.hist(acc_scores, int(1/0.02), range=[0.0, 1.0])  # 50 bars
-    ax.set(title=f'histogram of accuracy scores (50 bars) ({acc_string_mean})\ndataset: {csv_name}', ylabel='number of classifiers', xlabel='accuracy score')
-    plt.savefig(f'dataset_analysis/{csv_name}_50bars_accuracy.png')
-    plt.close(fig)
+    # fig, ax = plt.subplots()    
+    # plt.hist(acc_scores, int(1/0.02), range=[0.0, 1.0])  # 50 bars
+    # ax.set(title=f'histogram of accuracy scores (50 bars) ({acc_string_mean})\ndataset: {csv_name}', ylabel='number of classifiers', xlabel='accuracy score')
+    # plt.savefig(f'dataset_analysis/{csv_name}_50bars_accuracy.png')
+    # plt.close(fig)
 
     # # plt.figure()
     # fig, ax = plt.subplots()    
@@ -145,12 +145,12 @@ for csv_name in csv_choices:
     # ax.set(title=f'histogram of auc scores (50 bars, zoomed) ({auc_string_mean})', ylabel='frequency', xlabel='roc auc score')
     # plt.savefig(f'dataset_analysis/{csv_name}_50bars_zoomed.png')
     
-    # # plt.figure()
-    # fig, ax = plt.subplots()    
-    # plt.hist(auc_scores, int(1/0.005), range=[0.0, 1.0])  # 200 bars
-    # ax.set(title=f'histogram of auc scores (200 bars) ({auc_string_mean})\ndataset: {csv_name}', ylabel='number of classifiers', xlabel='roc auc score')
-    # plt.savefig(f'dataset_analysis/{csv_name}_200bars_auc.png')  
-    # plt.close(fig)
+    # plt.figure()
+    fig, ax = plt.subplots()    
+    plt.hist(auc_scores, int(1/0.005), range=[0.0, 1.0])  # 200 bars
+    ax.set(title=f'histogram of auc scores (200 bars) ({auc_string_mean})\ndataset: {csv_name}', ylabel='number of classifiers', xlabel='roc auc score')
+    plt.savefig(f'dataset_analysis/{csv_name}_200bars_auc.png')  
+    plt.close(fig)
 
     # fig, ax = plt.subplots()    
     # plt.hist(f1_scores, int(1/0.005), range=[0.0, 1.0])  # 200 bars
