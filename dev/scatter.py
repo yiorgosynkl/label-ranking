@@ -19,22 +19,13 @@ import seaborn as sns
 # set random seed
 np.random.seed(0)   # to reproduce same results for random forest
 
-# params = {                                                          # TOSET
-#     'clf_num' : 2 if len(sys.argv) < 3 else int(sys.argv[2]),       # choose classifier, num in set {0, ..., 5}
-# }
-
-
-# import dataset
-# csv_choices = ['authorship', 'bodyfat', 'calhousing', 'cpu-small', 'fried', 'glass', 'housing', 'iris', 'pendigits', 'segment', 'stock', 'vehicle', 'vowel', 'wine', 'wisconsin']
-# csv_choices = ['fried', 'pendigits', 'segment', 'vowel', 'wisconsin']
-# csv_choices = ['authorship', 'bodyfat', 'calhousing', 'cpu-small', 'glass', 'housing', 'iris', 'stock', 'vehicle', 'vowel', 'wine', 'wisconsin']
-# csv_choices = ['iris', 'wine']
-# csv_choices = ['iris']
-
 # we need low feature datasets and 
 # for clarity reasons, not many labels
 # csv_choices = ['bodyfat', 'calhousing', 'cpu-small', 'glass', 'housing', 'iris', 'stock']
 # csv_choices = ['glass', 'housing', 'stock']
+csv_choices = [ 'calhousing', 'iris', 'stock']
+# csv_choices = ['iris']
+DISCRETE_RANKINGS_PLOT = True
 
 # s string -> return n_labels and label_names
 def get_labels(s):
@@ -76,9 +67,15 @@ for csv_name in csv_choices:
     for _, _, mid in bclfs_keys:
         selected_features = feature_names + [mid]
         print_df = df[selected_features]
-        sns.pairplot(print_df, hue=mid)
+        sns.pairplot(print_df, hue=mid, plot_kws={'alpha':0.4})
         plt.savefig(f'scatter_analysis/{csv_name}_pair_{mid}.png')
         # plt.show()
+
+    if DISCRETE_RANKINGS_PLOT:
+        selected_features = feature_names + ['string_ranking']
+        print_df = df[selected_features]
+        sns.pairplot(print_df, hue='string_ranking', plot_kws={'alpha':0.4})
+        plt.savefig(f'scatter_analysis/{csv_name}_discrete_rankings.png')
 
     # sns.pairplot(df, hue='string_ranking')
     # penguins = sns.load_dataset("penguins")
