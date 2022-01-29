@@ -25,8 +25,8 @@ np.random.seed(0)
 
 params = {                                                          # TOSET
     'csv_num' : 8 if len(sys.argv) < 2 else int(sys.argv[1]),       # choose dataset, num in {0, 1,..., 17} 
-    'clf_num' : 5 if len(sys.argv) < 3 else int(sys.argv[2]),       # choose classifier, num in set {0, ..., 5}
-    'aggregation_num': 0 if len(sys.argv) < 4 else int(sys.argv[3])
+    'clf_num' : 4 if len(sys.argv) < 3 else int(sys.argv[2]),       # choose classifier, num in set {0, ..., 5}
+    'aggregation_num': 1 if len(sys.argv) < 4 else int(sys.argv[3])
 }
 
 # import dataset
@@ -186,7 +186,7 @@ for idx_train,idx_test in rkf.split(range(len(df))):
         test_df[mid] = list(model.predict(x_test)) # mid contains the predictions for each test sample from model 'mid'
 
     # step 2: use result of classifiers to make predictions
-    candidates_df = train_df.drop(columns=feature_names).drop_duplicates(subset=['ranking_as_string']).reset_index(drop=True)
+    candidates_df = train_df.drop(columns=feature_names).drop_duplicates(subset=['ranking_as_string']).reset_index(drop=True)       # keep only unique rankings
     candidates_df['count'] =  candidates_df.apply(lambda row: len(train_df[ train_df['ranking_as_string'] == row['ranking_as_string'] ]), axis='columns' )
     candidates_df['frequency'] =  candidates_df.apply(lambda row: row['count']/len(train_df), axis='columns' )
 

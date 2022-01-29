@@ -26,11 +26,11 @@ from sklearn.model_selection import RepeatedKFold
 
 # TOSET parameters
 random.seed(0)
-np.random.seed(0)                                       # set random seed
+np.random.seed(0)                                                   # set random seeds
 params = {                                                          # TOSET
     'csv_num' : 8 if len(sys.argv) < 2 else int(sys.argv[1]),       # choose dataset, num in {0, 1,..., 17} 
     'clf_num' : 5 if len(sys.argv) < 3 else int(sys.argv[2]),       # choose classifier, num in set {0, ..., 5}
-    'in_prob' : 0.0,                                                # incomplete prob
+    'in_prob' : 0.5,                                                # incomplete prob
     'antivotes_func_num' : 0
     # 'aggregation_num': 0 if len(sys.argv) < 4 else int(sys.argv[3])
 }
@@ -187,23 +187,22 @@ def find_prediction(row):
     for i, j, mid in bclfs_keys:
         antivotes[i] += set_antivotes(1 - row[mid])   # when close to 0, i is better, give more antivote to j
         antivotes[j] += set_antivotes(row[mid])       # when close to 1, j is better, give antivote to i
-    return np.argsort(np.argsort(antivotes))     # 2 times argsort to find label-fixed ranking
+    return np.argsort(np.argsort(antivotes))          # 2 times argsort to find label-fixed ranking
 
 rkf = RepeatedKFold(n_splits=10, n_repeats=5, random_state=1234)
 scores = []
 for fold_train_idxs, fold_test_idxs in rkf.split(range(len(df))):
     # step 1: train classifiers
-    train_df, test_df = df.loc[fold_train_idxs], df.loc[fold_test_idxs].drop(columns=[mid for _,_,mid in bclfs_keys])
-    x_train, x_test = train_df[feature_names], test_df[feature_names]
+    test_df = df.loc[fold_test_idxs].drop(columns=[mid for _,_,mid in bclfs_keys])
+    x_test = test_df[feature_names]
     for _, _, mid in bclfs_keys:
         model_train_idxs = df.index[df[mid] != -1]
-        valid_train_idxs = np.intersect1d(fold_train_idxs,model_train_idxs) # training with partial data
+        valid_train_idxs = np.intersect1d(fold_train_idxs, model_train_idxs) # training with partial data
         train_df = df.loc[valid_train_idxs]
         x_train, y_train = train_df[feature_names], train_df[mid]
         model = bclfs[mid]
         model.fit(x_train, y_train)
         test_df[mid] = list(model.predict(x_test)) # mid contains the predictions for each test sample from model 'mid'
-
     # # step 2: use result of classifiers to make predictions
     test_df['prediction'] = test_df.apply(lambda row: find_prediction(row), axis=1) # full prediction based on the models' values for each test row
     test_df['kendalltau'] = test_df.apply(lambda row: kendalltau(row['complete_ranking'], row['prediction'])[0], axis=1)    

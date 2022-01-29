@@ -25,16 +25,19 @@ import matplotlib.pyplot as plt
 # set random seed
 np.random.seed(0)   # to reproduce same results for random forest
 
-# params = {                                                          # TOSET
-#     'clf_num' : 2 if len(sys.argv) < 3 else int(sys.argv[2]),       # choose classifier, num in set {0, ..., 5}
-# }
+params = {                                                          # TOSET
+    'clf_num' : 2       # choose classifier, num in set {0, ..., 5}
+}
 
 
 # import dataset
 # csv_choices = ['authorship', 'bodyfat', 'calhousing', 'cpu-small', 'fried', 'glass', 'housing', 'iris', 'pendigits', 'segment', 'stock', 'vehicle', 'vowel', 'wine', 'wisconsin']
-# csv_choices = ['fried', 'pendigits', 'segment', 'vowel', 'wisconsin']
-csv_choices = ['authorship', 'bodyfat', 'calhousing', 'cpu-small', 'glass', 'housing', 'iris', 'stock', 'vehicle', 'vowel', 'wine', 'wisconsin']
-# csv_choices = ['iris']
+csv_choices = ['fried', 'pendigits', 'segment']
+# csv_choices = ['authorship', 'bodyfat', 'calhousing', 'cpu-small', 'glass', 'housing', 'iris', 'stock', 'vehicle', 'vowel', 'wine', 'wisconsin']
+# csv_choices = ['iris', 'wine']
+# csv_choices = ['wine']
+# csv_choices = ['vowel']
+
 
 # s string -> return n_labels and label_names
 def get_labels(s):
@@ -72,21 +75,21 @@ for csv_name in csv_choices:
     n_bclfs = len(bclfs_keys) # n * (n-1) // 2
 
     def classifier_init():  # choose type of binary classifier
-        return {mid: RandomForestClassifier(n_estimators=100) for _,_,mid in bclfs_keys} 
-        # global params
-        # clf_num = params['clf_num']
-        # if clf_num == 0: 
-        #     return {mid: SVC(gamma='scale') for _,_,mid in bclfs_keys} # binary classifiers (select by using model id)
-        # elif clf_num == 1:
-        #     return {mid: DecisionTreeClassifier() for _,_,mid in bclfs_keys} 
-        # elif clf_num == 2:
-        #     return {mid: RandomForestClassifier(n_estimators=100) for _,_,mid in bclfs_keys} 
-        # elif clf_num == 3:
-        #     return {mid: SVR(gamma='scale') for _,_,mid in bclfs_keys} 
-        # elif clf_num == 4:
-        #     return {mid: DecisionTreeRegressor() for _,_,mid in bclfs_keys} 
-        # else: # clf_num == 5:
-        #     return {mid: RandomForestRegressor(n_estimators=100) for _,_,mid in bclfs_keys} 
+        # return {mid: RandomForestClassifier(n_estimators=100) for _,_,mid in bclfs_keys} 
+        global params
+        clf_num = params['clf_num']
+        if clf_num == 0: 
+            return {mid: SVC(gamma='scale') for _,_,mid in bclfs_keys} # binary classifiers (select by using model id)
+        elif clf_num == 1:
+            return {mid: DecisionTreeClassifier() for _,_,mid in bclfs_keys} 
+        elif clf_num == 2:
+            return {mid: RandomForestClassifier(n_estimators=100) for _,_,mid in bclfs_keys} 
+        elif clf_num == 3:
+            return {mid: SVR(gamma='scale') for _,_,mid in bclfs_keys} 
+        elif clf_num == 4:
+            return {mid: DecisionTreeRegressor() for _,_,mid in bclfs_keys} 
+        else: # clf_num == 5:
+            return {mid: RandomForestRegressor(n_estimators=100) for _,_,mid in bclfs_keys} 
 
     bclfs = classifier_init()
 
@@ -145,12 +148,12 @@ for csv_name in csv_choices:
     # ax.set(title=f'histogram of auc scores (50 bars, zoomed) ({auc_string_mean})', ylabel='frequency', xlabel='roc auc score')
     # plt.savefig(f'dataset_analysis/{csv_name}_50bars_zoomed.png')
     
-    # plt.figure()
-    fig, ax = plt.subplots()    
-    plt.hist(auc_scores, int(1/0.005), range=[0.0, 1.0])  # 200 bars
-    ax.set(title=f'histogram of auc scores (200 bars) ({auc_string_mean})\ndataset: {csv_name}', ylabel='number of classifiers', xlabel='roc auc score')
-    plt.savefig(f'dataset_analysis/{csv_name}_200bars_auc.png')  
-    plt.close(fig)
+    # # plt.figure()
+    # fig, ax = plt.subplots()    
+    # plt.hist(auc_scores, int(1/0.005), range=[0.0, 1.0])  # 200 bars
+    # ax.set(title=f'histogram of auc scores (200 bars) ({auc_string_mean})\ndataset: {csv_name}', ylabel='number of classifiers', xlabel='roc auc score')
+    # plt.savefig(f'dataset_analysis/{csv_name}_200bars_auc.png')  
+    # plt.close(fig)
 
     # fig, ax = plt.subplots()    
     # plt.hist(f1_scores, int(1/0.005), range=[0.0, 1.0])  # 200 bars

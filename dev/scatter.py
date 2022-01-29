@@ -23,8 +23,8 @@ np.random.seed(0)   # to reproduce same results for random forest
 # for clarity reasons, not many labels
 # csv_choices = ['bodyfat', 'calhousing', 'cpu-small', 'glass', 'housing', 'iris', 'stock']
 # csv_choices = ['glass', 'housing', 'stock']
-csv_choices = [ 'calhousing', 'iris', 'stock']
-# csv_choices = ['iris']
+# csv_choices = [ 'calhousing', 'iris', 'stock']
+csv_choices = ['fried']
 DISCRETE_RANKINGS_PLOT = True
 
 # s string -> return n_labels and label_names

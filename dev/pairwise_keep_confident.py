@@ -121,7 +121,7 @@ def predict_row(test_row):
 
     candidates_df['aggregate'] = candidates_df.apply(lambda row: check_row(row), axis='columns')
     # ?? what if confidence makes everyone False ??
-    aggregation_df = candidates_df.loc[candidates_df['aggregate'] == True]['ranking']
+    aggregation_df = candidates_df.loc[candidates_df['aggregate'] == True]['ranking']   # keep only the ones to aggregate
     if len(aggregation_df) == 0: # ?? what if confidence makes everyone False ??
         global conf_counter 
         conf_counter += 1
@@ -129,42 +129,6 @@ def predict_row(test_row):
         return candidates_df['ranking'].loc[candidates_df['votes'].argmax()]
     else:
         return borda_rank_aggregation(list(aggregation_df))
-
-    # aggregation_num = params['aggregation_num']
-    # if aggregation_num == 0:
-    #     # * choose the maximum ranking based exclusively on votes from models
-    #     return candidates_df['ranking'].loc[candidates_df['votes'].argmax()]
-    # elif aggregation_num == 1:
-    #     # * choose the maximum ranking based on based mainly on votes and a little on frequency
-    #     candidates_df['weights'] = candidates_df.apply(lambda row: (1+row['frequency'])*row['votes'], axis='columns' )
-    #     return candidates_df['ranking'].loc[candidates_df['weights'].argmax()]
-    # elif aggregation_num == 2:
-    #     # * choose the maximum ranking based a little on votes and mainly on frequency
-    #     candidates_df['weights'] = candidates_df.apply(lambda row: row['frequency']*row['votes'], axis='columns' )
-    #     return candidates_df['ranking'].loc[candidates_df['weights'].argmax()]
-    # elif aggregation_num == 3:
-    #     # * aggregate based exclusively on votes (weighted borda)
-    #     return weighted_borda_rank_aggregation(list(candidates_df['ranking']), list(candidates_df['votes']))
-    # elif aggregation_num == 4:
-    #     # * aggregate based mainly on votes and a little on frequency (weighted borda)
-    #     candidates_df['weights'] = candidates_df.apply(lambda row: (1+row['frequency'])*row['votes'], axis='columns' )
-    #     return weighted_borda_rank_aggregation(list(candidates_df['ranking']), list(candidates_df['weights']))
-    # elif aggregation_num == 5:
-    #     # * aggregate based a little on votes and mainly on frequency (weighted borda)
-    #     candidates_df['weights'] = candidates_df.apply(lambda row: row['frequency']*row['votes'], axis='columns' )
-    #     return weighted_borda_rank_aggregation(list(candidates_df['ranking']), list(candidates_df['weights']))
-    # elif aggregation_num == 6:
-    #     # * aggregate based exclusively on votes (kemeny optimal aggregation)
-    #     return weighted_kemeny_rank_aggregation(list(candidates_df['ranking']), list(candidates_df['votes']))
-    # elif aggregation_num == 7:
-    #     # aggregate based mainly on votes and a little on frequency (kemeny optimal aggregation)
-    #     candidates_df['weights'] = candidates_df.apply(lambda row: (1+row['frequency'])*row['votes'], axis='columns' )
-    #     return weighted_kemeny_rank_aggregation(list(candidates_df['ranking']), list(candidates_df['weights']))
-    # else: # aggregation_num == 8:
-    #     # * aggregate based a little on votes and mainly on frequency (kemeny optimal aggregation)
-    #     candidates_df['weights'] = candidates_df.apply(lambda row: row['frequency']*row['votes'], axis='columns' )
-    #     return weighted_kemeny_rank_aggregation(list(candidates_df['ranking']), list(candidates_df['weights']))
-    #     # test_df.at[idx, 'prediction'] = weighted_kemeny_rank_aggregation(list(candidates_df['ranking']), list(candidates_df['weights']))
 
 rkf = RepeatedKFold(n_splits=10, n_repeats=5, random_state=1234)
 scores = []

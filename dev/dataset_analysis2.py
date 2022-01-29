@@ -29,7 +29,7 @@ np.random.seed(0)   # to reproduce same results for random forest
 # csv_choices = ['fried', 'pendigits', 'segment', 'vowel', 'wisconsin']
 # csv_choices = ['authorship', 'bodyfat', 'calhousing', 'cpu-small', 'glass', 'housing', 'iris', 'stock', 'vehicle', 'vowel', 'wine', 'wisconsin']
 # csv_choices = ['iris', 'wine']
-csv_choices = ['vowel']
+csv_choices = ['fried']
 
 # s string -> return n_labels and label_names
 def get_labels(s):

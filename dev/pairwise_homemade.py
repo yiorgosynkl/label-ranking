@@ -24,7 +24,7 @@ from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 np.random.seed(0)
 
 params = {                                                          # TOSET
-    'csv_num' : 8 if len(sys.argv) < 2 else int(sys.argv[1]),       # choose dataset, num in {0, 1,..., 17} 
+    'csv_num' : 16 if len(sys.argv) < 2 else int(sys.argv[1]),       # choose dataset, num in {0, 1,..., 17} 
     'clf_num' : 5 if len(sys.argv) < 3 else int(sys.argv[2]),       # choose classifier, num in set {0, ..., 5}
     'antivotes_func_num' : 0                                        # choose antivotes function, num in set {0, 1, 2, 3}
 }

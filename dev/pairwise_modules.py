@@ -27,7 +27,7 @@ np.random.seed(0)   # to reproduce same results for random forest
 params = {                                                          # TOSET
     'csv_num' : 8 if len(sys.argv) < 2 else int(sys.argv[1]),       # choose dataset, num in set {0, 1,..., 17} 
     'clf_num' : 5 if len(sys.argv) < 3 else int(sys.argv[2]),       # choose classifier, num in set {0, ..., 5}
-    'antivotes_func_num' : 0                                        # choose antivotes function, num in set {0, 1, 2, 3}
+    'antivotes_func_num' : 4                                        # choose antivotes function, num in set {0, 1, 2, 3}
 }
 
 # import dataset
@@ -107,6 +107,14 @@ def set_antivotes(conf):    # when conf -> 1, antivotes -> 0 , should be decreas
         return min(1/conf if conf > 0 else 50, 50)  # 0.0 to 1.0 -> [50, 10.0, 5.0, 3.33, 2.5, 2.0, 1.66, 1.43, 1.25, 1.11, 1.0]
     elif antivotes_func_num == 3:
         return 1/exp(4*conf)        # 0.0 to 1.0 -> [1.0, 0.67, 0.45, 0.30, 0.20, 0.14, 0.09, 0.06, 0.04, 0.03, 0.02]
+    elif antivotes_func_num == 4:
+        # sigmoid activation function
+        def sigmoid(x):
+            return 1.0 / (1.0 + exp(-x))
+        def centered_sigmoid(x):
+            theta = 10
+            return sigmoid( theta * (x-0.5) )  # if x < 0.5 --> 0 and if x > 0.5 --> 1, theta is the rate of squezze
+        return 1 - centered_sigmoid(conf)  
     else:
         return 1-conf               # 0.0 to 1.0 -> [1.0, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1, 0.0]
 
