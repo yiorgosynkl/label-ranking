@@ -8,6 +8,23 @@
 # Description       : use binary classifiers for preference of each label, then combine all results for final ranking prediction
 ################################################################
 
+'''
+    Extensive Description
+
+    This implementation acts on incomplete data.
+    It uses libraries to compute kendal_tau and to execute KFold loop and split of data.
+    
+    The key differences is that it uses kwiksort (2nd step - aggregation)
+    which is an efficient method for aggragtion of binary predictions
+
+    Parameters (similar to before):
+    * csv_num: selects the dataset 
+    * clf_num: selects one of the 6 variaties of binary base learners (1st step - learning)
+      (3 classifiers, 3 regressors that use either decision trees or random forests or support vector machines)
+    * in_prob: possibility that a label is missing from a ranking 
+        (!!! if it is too high, we get error in the code for rankings with 0 labels !!!)
+'''
+
 #________________ imports ________________#
 
 import sys

@@ -6,6 +6,29 @@
 # Repository        : label-ranking
 ################################################################
 
+'''
+    Extensive Description
+
+    This implementation acts on complete data.
+    It uses libraries to compute kendal_tau and to execute KFold loop and split of data.
+    
+    The key differences is that it uses the set of rankings encountered in the input data
+    as the set for candidate rankings (that will help us define the final prediction).
+    Using the aggregation_num, we define different methods of aggregation.
+    They are based on: 
+        - votes: amount of binary classifiers which "agree" with the ranking 
+            (binary preferences are in line with the order of labels in the ranking)
+        - frequency: how many times a ranking appears on the original dataset
+        - different aggregation methods are used (maximum, borda, kemeny)
+
+    Parameters (similar to before):
+    * csv_num: selects the dataset 
+    * clf_num: selects one of the 6 variaties of binary base learners (1st step - learning)
+      (3 classifiers, 3 regressors that use either decision trees or random forests or support vector machines)
+    * aggregation_num: selects the aggregation method
+'''
+
+
 #________________ imports ________________#
 
 import pandas as pd

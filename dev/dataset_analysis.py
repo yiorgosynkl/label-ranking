@@ -22,6 +22,16 @@ from sklearn.metrics import roc_auc_score, f1_score, accuracy_score
 import timeit
 import matplotlib.pyplot as plt
 
+'''
+    Extensive Description
+
+    This program plots the histograms of the auc scores, f1 scores, accuracy scores of the classifiers.
+    It gives an idea on the distribution of the quality of the classifiers.
+    There is obviously correlation between how well the binary classifiers perform with the final results of the RPC method.
+
+    This will help us find patterns between the quality of classifiers and the characteristics of the datasets.
+'''
+
 # set random seed
 np.random.seed(0)   # to reproduce same results for random forest
 

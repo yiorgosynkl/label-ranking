@@ -8,6 +8,20 @@
 # Description       : use binary classifiers for preference of each label, then combine all results for final ranking prediction
 ################################################################
 
+'''
+    Extensive Description
+
+    This is the first implementation of a model. It acts on complete data.
+    The simplest one, kendall tau is computed using my implementation, hence the name is homemade.
+
+    Parameters:
+    * csv_num: selects the datases, 
+    * clf_num: selects one of the 6 variaties of binary base learners (1st step - learning)
+      (3 classifiers, 3 regressors that use either decision trees or random forests or support vector machines)
+    * antivotes_func_num: selects 1 of the 4 functions to do the ranking process (2nd step - aggregation)
+'''
+
+
 #________________ imports ________________#
 
 import pandas as pd

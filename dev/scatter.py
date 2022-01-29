@@ -5,6 +5,22 @@
 # Description       : datasets analysis 2
 ################################################################
 
+'''
+    Extensive Description
+
+    This program creates a scatter plot of the input rankings of a dataset.
+    The 2d plotting (per feature) helps us visually comprehend the complexity of the input data
+    and observe patterns that explain why the performance of RPC is high or low.
+
+    In datasets with many labels, we create scatter plots with two colors 
+    representing the two states (a>b or a<b) for a pair of labels a,b
+
+    In datasets with few labels, we also create discrete ranking scatter plots,
+    where we view each unique ranking with different color.
+'''
+
+
+
 #________________ imports ________________#
 
 import pandas as pd

@@ -8,6 +8,20 @@
 #   using official implementations of kendalltau and KFold
 ################################################################
 
+'''
+    Extensive Description
+
+    This is the second implementation. It acts on complete data.
+    It uses libraries to compute kendal_tau and to execute KFold loop and split of data
+
+    Parameters (similar to before):
+    * csv_num: selects the dataset 
+    * clf_num: selects one of the 6 variaties of binary base learners (1st step - learning)
+      (3 classifiers, 3 regressors that use either decision trees or random forests or support vector machines)
+    * antivotes_func_num: selects 1 of the 4 functions to use during the aggregation of binary predictions (2nd step - aggregation)
+'''
+
+
 #________________ imports ________________#
 
 import pandas as pd

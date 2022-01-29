@@ -5,6 +5,19 @@
 # Description       : datasets analysis 2
 ################################################################
 
+'''
+    Extensive Description
+
+    This program plots the amount of unique rankings that we encounter in a dataset.
+    It gives an idea on the distribution of rankings in the input space of the problem.
+
+    We expect that datasets where only a minority of the unique rankings appear the majority of the times 
+    are also datasets that RPC performs better.
+    
+    This will help us find corellation between the complexity in the input space and the performance of our models.
+'''
+
+
 #________________ imports ________________#
 
 import pandas as pd

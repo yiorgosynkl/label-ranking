@@ -6,6 +6,27 @@
 # Repository        : label-ranking
 ################################################################
 
+
+'''
+    Extensive Description
+
+    This implementation acts on complete data.
+    It uses libraries to compute kendal_tau and to execute KFold loop and split of data.
+    
+    The key differences is that it uses kwiksort (2nd step - aggregation)
+    which is an efficient method for aggragtion of binary predictions
+
+    Parameters (similar to before):
+    * csv_num: selects the dataset 
+    * clf_num: selects one of the 6 variaties of binary base learners (1st step - learning)
+      (3 classifiers, 3 regressors that use either decision trees or random forests or support vector machines)
+    * kwik_num: two different implementations of the kwiksort algorithm
+        - the first variation uses one-run of kwiksort
+        - the second variation uses multiple-run of kwiksort with different pivots 
+            (aggregation of permutations happens using kemeny optimal aggregation in this case)
+'''
+
+
 #________________ imports ________________#
 
 import pandas as pd
