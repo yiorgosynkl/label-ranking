@@ -4,7 +4,12 @@ __pycache__
 
 dev/other/
 dev/pairwise_helpers.py
-dev/pairwise_incomplete.py
+# dev/pairwise_incomplete.py
 dev/tmp.py
 notes.md
 .DS_Store
+
+dev/incomplete_analysis
+dev/scatter_analysis
+dev/dataset_analysis
+dev/scatter_analysis.zip
