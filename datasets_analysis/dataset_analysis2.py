@@ -29,6 +29,13 @@ import timeit
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator
 
+# manage paths
+import pathlib
+cur_dir = pathlib.Path(__file__).resolve().parent
+base_dir = pathlib.Path(__file__).resolve().parents[1]
+pathlib.Path(f'{cur_dir}/figures').mkdir(parents=True, exist_ok=True)
+output_dir = f'{cur_dir}/figures'
+
 # set random seed
 np.random.seed(0)   # to reproduce same results for random forest
 
@@ -41,8 +48,8 @@ np.random.seed(0)   # to reproduce same results for random forest
 # csv_choices = ['authorship', 'bodyfat', 'calhousing', 'cpu-small', 'fried', 'glass', 'housing', 'iris', 'pendigits', 'segment', 'stock', 'vehicle', 'vowel', 'wine', 'wisconsin']
 # csv_choices = ['fried', 'pendigits', 'segment', 'vowel', 'wisconsin']
 # csv_choices = ['authorship', 'bodyfat', 'calhousing', 'cpu-small', 'glass', 'housing', 'iris', 'stock', 'vehicle', 'vowel', 'wine', 'wisconsin']
-# csv_choices = ['iris', 'wine']
-csv_choices = ['fried']
+csv_choices = ['iris', 'wine']
+# csv_choices = ['fried']
 
 # s string -> return n_labels and label_names
 def get_labels(s):
@@ -60,7 +67,7 @@ def convert_ranking_string2list(s):  # label-fixed expression
 for csv_name in csv_choices:
     start_time = timeit.default_timer()
 
-    CSV_PATH = f'../data/{csv_name}.txt'  # path to dataset
+    CSV_PATH = f'{data_dir}/{csv_name}.txt'  # path to dataset
     df = pd.read_csv(CSV_PATH)
 
     # general dimensions and information
@@ -103,7 +110,7 @@ for csv_name in csv_choices:
     ax.set(title=f'sorted number of appearances of unique rankings\n(0 appearances not included)\ndataset: {csv_name}', ylabel='number of appereances')
     ax.xaxis.set_major_locator(MaxNLocator(integer=True))
     ax.yaxis.set_major_locator(MaxNLocator(integer=True))
-    plt.savefig(f'dataset_analysis/{csv_name}_classifier_appereances_no0.png')
+    plt.savefig(f'{output_dir}/{csv_name}_classifier_appereances_no0.png')
     plt.close(fig)
 
     n_total_rankings = factorial(n_labels)
@@ -117,6 +124,6 @@ for csv_name in csv_choices:
         ax.set(title=f'sorted number of appearances of unique rankings\n(0 appearances included)\ndataset: {csv_name}', ylabel='number of appereances')
         ax.xaxis.set_major_locator(MaxNLocator(integer=True))
         ax.yaxis.set_major_locator(MaxNLocator(integer=True))
-        plt.savefig(f'dataset_analysis/{csv_name}_classifier_appereances_with0.png')
+        plt.savefig(f'{output_dir}/{csv_name}_classifier_appereances_with0.png')
         plt.close(fig)
 

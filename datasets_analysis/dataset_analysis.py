@@ -5,6 +5,16 @@
 # Description       : datasets analysis
 ################################################################
 
+'''
+    Extensive Description
+
+    This program plots the histograms of the auc scores, f1 scores, accuracy scores of the classifiers.
+    It gives an idea on the distribution of the quality of the classifiers.
+    There is obviously correlation between how well the binary classifiers perform with the final results of the RPC method.
+
+    This will help us find patterns between the quality of classifiers and the characteristics of the datasets.
+'''
+
 #________________ imports ________________#
 
 import pandas as pd
@@ -22,15 +32,13 @@ from sklearn.metrics import roc_auc_score, f1_score, accuracy_score
 import timeit
 import matplotlib.pyplot as plt
 
-'''
-    Extensive Description
-
-    This program plots the histograms of the auc scores, f1 scores, accuracy scores of the classifiers.
-    It gives an idea on the distribution of the quality of the classifiers.
-    There is obviously correlation between how well the binary classifiers perform with the final results of the RPC method.
-
-    This will help us find patterns between the quality of classifiers and the characteristics of the datasets.
-'''
+# manage paths
+import pathlib
+cur_dir = pathlib.Path(__file__).resolve().parent
+base_dir = pathlib.Path(__file__).resolve().parents[1]
+data_dir = f'{base_dir}/data'
+pathlib.Path(f'{cur_dir}/figures').mkdir(parents=True, exist_ok=True)
+output_dir = f'{cur_dir}/figures'
 
 # set random seed
 np.random.seed(0)   # to reproduce same results for random forest
@@ -42,9 +50,9 @@ params = {                                                          # TOSET
 
 # import dataset
 # csv_choices = ['authorship', 'bodyfat', 'calhousing', 'cpu-small', 'fried', 'glass', 'housing', 'iris', 'pendigits', 'segment', 'stock', 'vehicle', 'vowel', 'wine', 'wisconsin']
-csv_choices = ['fried', 'pendigits', 'segment']
+# csv_choices = ['fried', 'pendigits', 'segment']
 # csv_choices = ['authorship', 'bodyfat', 'calhousing', 'cpu-small', 'glass', 'housing', 'iris', 'stock', 'vehicle', 'vowel', 'wine', 'wisconsin']
-# csv_choices = ['iris', 'wine']
+csv_choices = ['iris', 'wine']
 # csv_choices = ['wine']
 # csv_choices = ['vowel']
 
@@ -66,7 +74,7 @@ print('dataset, samples, features , labels, unique rankings, auc_scores, f1_scor
 for csv_name in csv_choices:
     start_time = timeit.default_timer()
 
-    CSV_PATH = f'../data/{csv_name}.txt'  # path to dataset
+    CSV_PATH = f'{data_dir}/{csv_name}.txt'  # path to dataset
     df = pd.read_csv(CSV_PATH)
 
     # general dimensions and information
@@ -137,51 +145,51 @@ for csv_name in csv_choices:
     # fig, ax = plt.subplots()    
     # plt.hist(auc_scores, int(1/0.02), range=[0.0, 1.0])  # 50 bars
     # ax.set(title=f'histogram of auc scores (50 bars) ({auc_string_mean})\ndataset: {csv_name}', ylabel='number of classifiers', xlabel='roc auc score')
-    # plt.savefig(f'dataset_analysis/{csv_name}_50bars_auc.png')
+    # plt.savefig(f'{output_dir}/{csv_name}_50bars_auc.png')
     # plt.close(fig)
 
     # fig, ax = plt.subplots()    
     # plt.hist(f1_scores, int(1/0.02), range=[0.0, 1.0])  # 50 bars
     # ax.set(title=f'histogram of f1 scores (50 bars) ({f1_string_mean})\ndataset: {csv_name}', ylabel='number of classifiers', xlabel='f1 score')
-    # plt.savefig(f'dataset_analysis/{csv_name}_50bars_f1.png')
+    # plt.savefig(f'{output_dir}/{csv_name}_50bars_f1.png')
     # plt.close(fig)
 
     # fig, ax = plt.subplots()    
     # plt.hist(acc_scores, int(1/0.02), range=[0.0, 1.0])  # 50 bars
     # ax.set(title=f'histogram of accuracy scores (50 bars) ({acc_string_mean})\ndataset: {csv_name}', ylabel='number of classifiers', xlabel='accuracy score')
-    # plt.savefig(f'dataset_analysis/{csv_name}_50bars_accuracy.png')
+    # plt.savefig(f'{output_dir}/{csv_name}_50bars_accuracy.png')
     # plt.close(fig)
 
     # # plt.figure()
     # fig, ax = plt.subplots()    
     # plt.hist(scores, int(1/0.02))  # 50 bars, zoomed
     # ax.set(title=f'histogram of auc scores (50 bars, zoomed) ({auc_string_mean})', ylabel='frequency', xlabel='roc auc score')
-    # plt.savefig(f'dataset_analysis/{csv_name}_50bars_zoomed.png')
+    # plt.savefig(f'{output_dir}/{csv_name}_50bars_zoomed.png')
     
     # # plt.figure()
     # fig, ax = plt.subplots()    
     # plt.hist(auc_scores, int(1/0.005), range=[0.0, 1.0])  # 200 bars
     # ax.set(title=f'histogram of auc scores (200 bars) ({auc_string_mean})\ndataset: {csv_name}', ylabel='number of classifiers', xlabel='roc auc score')
-    # plt.savefig(f'dataset_analysis/{csv_name}_200bars_auc.png')  
+    # plt.savefig(f'{output_dir}/{csv_name}_200bars_auc.png')  
     # plt.close(fig)
 
     # fig, ax = plt.subplots()    
     # plt.hist(f1_scores, int(1/0.005), range=[0.0, 1.0])  # 200 bars
     # ax.set(title=f'histogram of f1 scores (200 bars) ({f1_string_mean})\ndataset: {csv_name}', ylabel='number of classifiers', xlabel='f1 score')
-    # plt.savefig(f'dataset_analysis/{csv_name}_200bars_f1.png')  
+    # plt.savefig(f'{output_dir}/{csv_name}_200bars_f1.png')  
     # plt.close(fig)
 
     # fig, ax = plt.subplots()    
     # plt.hist(acc_scores, int(1/0.005), range=[0.0, 1.0])  # 200 bars
     # ax.set(title=f'histogram of accuracy scores (200 bars) ({acc_string_mean})\ndataset: {csv_name}', ylabel='number of classifiers', xlabel='accuracy score')
-    # plt.savefig(f'dataset_analysis/{csv_name}_200bars_accuracy.png')  
+    # plt.savefig(f'{output_dir}/{csv_name}_200bars_accuracy.png')  
     # plt.close(fig)
 
     # # plt.figure()
     # fig, ax = plt.subplots()    
     # plt.hist(scores, int(1/0.005))  # 200 bars, zoomed
     # ax.set(title=f'histogram of auc scores (200 bars, zoomed) ({auc_string_mean})', ylabel='frequency', xlabel='roc auc score')
-    # plt.savefig(f'dataset_analysis/{csv_name}_200bars_zoomed.png') 
+    # plt.savefig(f'{output_dir}/{csv_name}_200bars_zoomed.png') 
 
     out_string += f'{auc_string_mean}, {f1_string_mean}, {acc_string_mean}, {run_time}s'
     print(out_string)

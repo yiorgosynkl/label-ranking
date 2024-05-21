@@ -32,15 +32,24 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 # from matplotlib.ticker import MaxNLocator
 
+# manage paths
+import pathlib
+cur_dir = pathlib.Path(__file__).resolve().parent
+base_dir = pathlib.Path(__file__).resolve().parents[1]
+data_dir = f'{base_dir}/data'
+pathlib.Path(f'{cur_dir}/figures').mkdir(parents=True, exist_ok=True)
+output_dir = f'{cur_dir}/figures'
+
 # set random seed
 np.random.seed(0)   # to reproduce same results for random forest
 
 # we need low feature datasets and 
 # for clarity reasons, not many labels
+csv_choices = ['iris']
 # csv_choices = ['bodyfat', 'calhousing', 'cpu-small', 'glass', 'housing', 'iris', 'stock']
 # csv_choices = ['glass', 'housing', 'stock']
 # csv_choices = [ 'calhousing', 'iris', 'stock']
-csv_choices = ['fried']
+# csv_choices = ['fried']
 DISCRETE_RANKINGS_PLOT = True
 
 # s string -> return n_labels and label_names
@@ -57,8 +66,8 @@ def convert_ranking_string2list(s):  # label-fixed expression
     return np.argsort(s.split('>'))
 
 for csv_name in csv_choices:
-    CSV_PATH = f'../data/{csv_name}.txt'  # path to dataset
-    df = pd.read_csv(CSV_PATH)
+    csv_path = f'{data_dir}/{csv_name}.txt'  # path to dataset
+    df = pd.read_csv(csv_path)
 
     # general dimensions and information
     label_names = get_labels(df.iloc[0,-1]) # names of labels (indexed from 0 to n_labels - 1)
@@ -84,14 +93,14 @@ for csv_name in csv_choices:
         selected_features = feature_names + [mid]
         print_df = df[selected_features]
         sns.pairplot(print_df, hue=mid, plot_kws={'alpha':0.4})
-        plt.savefig(f'scatter_analysis/{csv_name}_pair_{mid}.png')
+        plt.savefig(f'{output_dir}/{csv_name}_pair_{mid}.png')
         # plt.show()
 
     if DISCRETE_RANKINGS_PLOT:
         selected_features = feature_names + ['string_ranking']
         print_df = df[selected_features]
         sns.pairplot(print_df, hue='string_ranking', plot_kws={'alpha':0.4})
-        plt.savefig(f'scatter_analysis/{csv_name}_discrete_rankings.png')
+        plt.savefig(f'{output_dir}/{csv_name}_discrete_rankings.png')
 
     # sns.pairplot(df, hue='string_ranking')
     # penguins = sns.load_dataset("penguins")
