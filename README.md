@@ -20,4 +20,16 @@ We distinguish the following teams of programs:
 * programs that train models and make predictions for incomplete data(`pairwise_incomplete.py`)
 * programs that make analysis of the datasets (`dataset_analysis.py, dataset_analysis2.py, scatter.py`)
 * scripts to automate running the aforementioned programs (`script.py, incomplete_run.py, incomplete_run2.py`)
-  
+
+> Note that all python progams use global variables to control the behaviour (like "which datasets should be analysed?" or "which classifiers to be used for the models?" etc.).
+
+## how to run
+
+To run, activate the virtual environment, install the requirements and run the relevant scritps:
+```bash
+virtualenv venv 
+source venv/bin/activate
+python3 -m pip install -r requirements.txt
+
+python3 scatter_analysis/scatter.py
+```
