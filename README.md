@@ -1,6 +1,6 @@
 # label-ranking
 
-A repo containing the code of my thesis.
+A repo containing the resources of my thesis.
 
 ## abstract
 
@@ -8,6 +8,14 @@ Label ranking is a problem that has recently attracted research attention due to
 
 > Keywords Preference learning, Label Ranking, Pairwise classification, Rank aggregation
 
+## thesis
+
+You can find the submitted version of my thesis in `thesis/thesis-english-and-greek.pdf`.
+Here are some of the contents:
+| <!-- --> | <!-- --> |
+|:--------:|:--------:|
+| <img width="1604" alt="screenshot-1" src="./imgs/thesis-screenshot-1.png">| <img width="1604" alt="screenshot-2" src="./imgs/thesis-screenshot-2.png"> |
+| <img width="1604" alt="screenshot-3" src="./imgs/thesis-screenshot-3.png">| <img width="1604" alt="screenshot-4" src="./imgs/thesis-screenshot-4.png"> |
 
 ## development
 
